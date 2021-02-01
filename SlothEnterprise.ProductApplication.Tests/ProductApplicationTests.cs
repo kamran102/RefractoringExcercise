@@ -15,12 +15,19 @@ namespace SlothEnterprise.ProductApplication.Tests
         private readonly Mock<ISelectInvoiceService> _mockSelectInvoiceService;
         private readonly Mock<IConfidentialInvoiceService> _mockConfidentialInvoiceService;
         private readonly Mock<IBusinessLoansService> _mockBusinessLoansService;
+        private readonly IProductApplicationService sut;
 
         public ProductApplicationTests()
         {
             _mockSelectInvoiceService = new Mock<ISelectInvoiceService>(MockBehavior.Strict);
             _mockConfidentialInvoiceService = new Mock<IConfidentialInvoiceService>(MockBehavior.Strict);
             _mockBusinessLoansService = new Mock<IBusinessLoansService>(MockBehavior.Strict);
+
+            sut = new ProductApplicationService(
+                    _mockSelectInvoiceService.Object,
+                    _mockConfidentialInvoiceService.Object,
+                    _mockBusinessLoansService.Object
+                );
         }
 
         #region Tests for group operations
@@ -29,24 +36,7 @@ namespace SlothEnterprise.ProductApplication.Tests
         public void ProductApplicationService_SubmitApplicationFor_WhenCalledWithSelectiveInvoiceDiscount_ShouldReturnExpectedResult()
         {
             // Arrange
-            IProductApplicationService sut = new ProductApplicationService(_mockSelectInvoiceService.Object, _mockConfidentialInvoiceService.Object, _mockBusinessLoansService.Object);
-
-            ISellerApplication application = new SellerApplication()
-            {
-                CompanyData = new SellerCompanyData()
-                {
-                    DirectorName = "Bob",
-                    Founded = new System.DateTime(1900, 1, 1),
-                    Name = "Bob Inc.",
-                    Number = 123
-                },
-                Product = new SelectiveInvoiceDiscount()
-                {
-                    AdvancePercentage = 2.5m,
-                    Id = 123,
-                    InvoiceAmount = 456m
-                }
-            };
+            ISellerApplication application = CreateSelectiveInvoiceDiscount();
 
             int expected = 999;
 
@@ -60,6 +50,9 @@ namespace SlothEnterprise.ProductApplication.Tests
             _mockSelectInvoiceService.VerifyAll();
         }
 
+
+        #region Confidential Invoice Discount
+
         [Fact]
         public void ProductApplicationService_SubmitApplicationFor_WhenCalledWithConfidentialInvoiceDiscount_ShouldReturnOne()
         {
@@ -68,33 +61,9 @@ namespace SlothEnterprise.ProductApplication.Tests
             bool success = true;
             IList<string> errors = null;
             var result = SetupMockActionResult(applicationId, success, errors);
-
-            ISellerApplication application = new SellerApplication()
-            {
-                CompanyData = new SellerCompanyData()
-                {
-                    DirectorName = "Bob",
-                    Founded = new System.DateTime(1900, 1, 1),
-                    Name = "Bob Inc.",
-                    Number = 123
-                },
-                Product = new ConfidentialInvoiceDiscount()
-                {
-                    AdvancePercentage = 2.5m,
-                    Id = 123,
-                    TotalLedgerNetworth = 456m,
-                    VatRate = 2.5m
-                }
-            };
+            ISellerApplication application = CreateConfidentialInvoiceDiscount();
 
             SetupMockConfidentialInvoiceDiscount(application, result.Object);
-
-            IProductApplicationService sut =
-                new ProductApplicationService(
-                    _mockSelectInvoiceService.Object,
-                    _mockConfidentialInvoiceService.Object,
-                    _mockBusinessLoansService.Object
-                );
 
             // Act
             int actual = sut.SubmitApplicationFor(application);
@@ -111,33 +80,9 @@ namespace SlothEnterprise.ProductApplication.Tests
             bool success = false;
             IList<string> errors = null;
             var result = SetupMockActionResult(applicationId, success, errors);
-
-            ISellerApplication application = new SellerApplication()
-            {
-                CompanyData = new SellerCompanyData()
-                {
-                    DirectorName = "Bob",
-                    Founded = new System.DateTime(1900, 1, 1),
-                    Name = "Bob Inc.",
-                    Number = 123
-                },
-                Product = new ConfidentialInvoiceDiscount()
-                {
-                    AdvancePercentage = 2.5m,
-                    Id = 123,
-                    TotalLedgerNetworth = 456m,
-                    VatRate = 2.5m
-                }
-            };
+            ISellerApplication application = CreateConfidentialInvoiceDiscount();
 
             SetupMockConfidentialInvoiceDiscount(application, result.Object);
-
-            IProductApplicationService sut =
-                new ProductApplicationService(
-                    _mockSelectInvoiceService.Object,
-                    _mockConfidentialInvoiceService.Object,
-                    _mockBusinessLoansService.Object
-                );
 
             // Act
             int actual = sut.SubmitApplicationFor(application);
@@ -154,33 +99,9 @@ namespace SlothEnterprise.ProductApplication.Tests
             bool success = true;
             IList<string> errors = null;
             var result = SetupMockActionResult(applicationId, success, errors);
-
-            ISellerApplication application = new SellerApplication()
-            {
-                CompanyData = new SellerCompanyData()
-                {
-                    DirectorName = "Bob",
-                    Founded = new System.DateTime(1900, 1, 1),
-                    Name = "Bob Inc.",
-                    Number = 123
-                },
-                Product = new ConfidentialInvoiceDiscount()
-                {
-                    AdvancePercentage = 2.5m,
-                    Id = 123,
-                    TotalLedgerNetworth = 456m,
-                    VatRate = 2.5m
-                }
-            };
+            ISellerApplication application = CreateConfidentialInvoiceDiscount();
 
             SetupMockConfidentialInvoiceDiscount(application, result.Object);
-
-            IProductApplicationService sut =
-                new ProductApplicationService(
-                    _mockSelectInvoiceService.Object,
-                    _mockConfidentialInvoiceService.Object,
-                    _mockBusinessLoansService.Object
-                );
 
             // Act
             int actual = sut.SubmitApplicationFor(application);
@@ -188,6 +109,11 @@ namespace SlothEnterprise.ProductApplication.Tests
             // Assert
             actual.Should().Be(-1);
         }
+
+        #endregion
+
+
+        #region Business Loan Tests
 
         [Fact]
         public void ProductApplicationService_SubmitApplicationFor_WhenCalledWithBusinessLoans_ShouldReturnExpectedValue()
@@ -197,31 +123,9 @@ namespace SlothEnterprise.ProductApplication.Tests
             bool success = true;
             IList<string> errors = null;
             var result = SetupMockActionResult(applicationId, success, errors);
-
-            ISellerApplication application = new SellerApplication()
-            {
-                CompanyData = new SellerCompanyData()
-                {
-                    DirectorName = "Bob",
-                    Founded = new System.DateTime(1900, 1, 1),
-                    Name = "Bob Inc.",
-                    Number = 123
-                },
-                Product = new BusinessLoans()
-                {
-                    InterestRatePerAnnum = 2.5m,
-                    LoanAmount = 234m
-                }
-            };
+            ISellerApplication application = CreateBusinessLoansApplication();
 
             SetupMockBusinessLoans(application, result.Object);
-
-            IProductApplicationService sut =
-                new ProductApplicationService(
-                    _mockSelectInvoiceService.Object,
-                    _mockConfidentialInvoiceService.Object,
-                    _mockBusinessLoansService.Object
-                );
 
             // Act
             int actual = sut.SubmitApplicationFor(application);
@@ -238,31 +142,9 @@ namespace SlothEnterprise.ProductApplication.Tests
             bool success = true;
             IList<string> errors = null;
             var result = SetupMockActionResult(applicationId, success, errors);
-
-            ISellerApplication application = new SellerApplication()
-            {
-                CompanyData = new SellerCompanyData()
-                {
-                    DirectorName = "Bob",
-                    Founded = new System.DateTime(1900, 1, 1),
-                    Name = "Bob Inc.",
-                    Number = 123
-                },
-                Product = new BusinessLoans()
-                {
-                    InterestRatePerAnnum = 2.5m,
-                    LoanAmount = 234m
-                }
-            };
+            ISellerApplication application = CreateBusinessLoansApplication();
 
             SetupMockBusinessLoans(application, result.Object);
-
-            IProductApplicationService sut =
-                new ProductApplicationService(
-                    _mockSelectInvoiceService.Object,
-                    _mockConfidentialInvoiceService.Object,
-                    _mockBusinessLoansService.Object
-                );
 
             // Act
             int actual = sut.SubmitApplicationFor(application);
@@ -279,8 +161,136 @@ namespace SlothEnterprise.ProductApplication.Tests
             bool success = false;
             IList<string> errors = null;
             var result = SetupMockActionResult(applicationId, success, errors);
+            ISellerApplication application = CreateBusinessLoansApplication();
 
-            ISellerApplication application = new SellerApplication()
+            SetupMockBusinessLoans(application, result.Object);
+
+            // Act
+            int actual = sut.SubmitApplicationFor(application);
+
+            // Assert
+            actual.Should().Be(-1);
+        }
+
+        #endregion
+
+
+        #region Invalid request type tests
+
+        [Fact]
+        public void ProductApplicationService_SubmitApplicationFor_WhenCalledWithUnexpectedType_ShouldThrowException()
+        {
+            // Arrange
+            Mock<IProduct> mockProduct = new Mock<IProduct>();
+            Mock<ISellerApplication> mockApplication = new Mock<ISellerApplication>();
+            mockApplication.Setup(p => p.Product).Returns(mockProduct.Object);
+
+            // Act
+            Func<int> act = new Func<int>(() => { return sut.SubmitApplicationFor(mockApplication.Object); });
+
+            // Assert
+            act.Should().Throw<InvalidOperationException>();
+        }
+
+        #endregion
+
+        #endregion
+
+
+        #region Service Setups
+
+        private Mock<IApplicationResult> SetupMockActionResult(int? applicationId, bool success, IList<string> errors)
+        {
+            var mock = new Mock<IApplicationResult>(MockBehavior.Strict);
+            mock.SetupAllProperties();
+            mock.Object.ApplicationId = applicationId;
+            mock.Object.Success = success;
+            mock.Object.Errors = errors;
+
+            return mock;
+        }
+
+
+        #region Selective Invoice Discount
+
+        private void SetupMockSelectInvoiceService(ISellerApplication application, int rtn)
+        {
+            SelectiveInvoiceDiscount product = (SelectiveInvoiceDiscount)application.Product;
+            _mockSelectInvoiceService
+                .Setup(p => p.SubmitApplicationFor(application.CompanyData.Number.ToString(), product.InvoiceAmount, product.AdvancePercentage))
+                .Returns(rtn);
+        }
+
+        private static ISellerApplication CreateSelectiveInvoiceDiscount()
+        {
+            return new SellerApplication()
+            {
+                CompanyData = new SellerCompanyData()
+                {
+                    DirectorName = "Bob",
+                    Founded = new System.DateTime(1900, 1, 1),
+                    Name = "Bob Inc.",
+                    Number = 123
+                },
+                Product = new SelectiveInvoiceDiscount()
+                {
+                    AdvancePercentage = 2.5m,
+                    Id = 123,
+                    InvoiceAmount = 456m
+                }
+            };
+        }
+
+        #endregion
+
+
+        #region Confidential Invoice Setups
+
+        private void SetupMockConfidentialInvoiceDiscount(ISellerApplication application, IApplicationResult result)
+        {
+            ConfidentialInvoiceDiscount product = (ConfidentialInvoiceDiscount)application.Product;
+
+            _mockConfidentialInvoiceService
+                .Setup(p => p.SubmitApplicationFor(It.IsAny<CompanyDataRequest>(), product.TotalLedgerNetworth, product.AdvancePercentage, product.VatRate))
+                .Returns(result);
+        }
+
+        private static ISellerApplication CreateConfidentialInvoiceDiscount()
+        {
+            return new SellerApplication()
+            {
+                CompanyData = new SellerCompanyData()
+                {
+                    DirectorName = "Bob",
+                    Founded = new System.DateTime(1900, 1, 1),
+                    Name = "Bob Inc.",
+                    Number = 123
+                },
+                Product = new ConfidentialInvoiceDiscount()
+                {
+                    AdvancePercentage = 2.5m,
+                    Id = 123,
+                    TotalLedgerNetworth = 456m,
+                    VatRate = 2.5m
+                }
+            };
+        }
+
+        #endregion
+
+
+        #region Business Loans Setups
+
+        private void SetupMockBusinessLoans(ISellerApplication application, IApplicationResult result)
+        {
+            _mockBusinessLoansService
+                .Setup(p => p.SubmitApplicationFor(It.IsAny<CompanyDataRequest>(), It.IsAny<LoansRequest>()))
+                .Returns(result);
+        }
+
+        private static ISellerApplication CreateBusinessLoansApplication()
+        {
+            return new SellerApplication()
             {
                 CompanyData = new SellerCompanyData()
                 {
@@ -295,99 +305,10 @@ namespace SlothEnterprise.ProductApplication.Tests
                     LoanAmount = 234m
                 }
             };
-
-            SetupMockBusinessLoans(application, result.Object);
-
-            IProductApplicationService sut =
-                new ProductApplicationService(
-                    _mockSelectInvoiceService.Object,
-                    _mockConfidentialInvoiceService.Object,
-                    _mockBusinessLoansService.Object
-                );
-
-            // Act
-            int actual = sut.SubmitApplicationFor(application);
-
-            // Assert
-            actual.Should().Be(-1);
-        }
-
-        [Fact]
-        public void ProductApplicationService_SubmitApplicationFor_WhenCalledWithUnexpectedTime_ShouldThrowException()
-        {
-            // Arrange
-            IProductApplicationService sut = new ProductApplicationService(_mockSelectInvoiceService.Object, _mockConfidentialInvoiceService.Object, _mockBusinessLoansService.Object);
-
-            Mock<IProduct> mockProduct = new Mock<IProduct>();
-            Mock<ISellerApplication> mockApplication = new Mock<ISellerApplication>();
-            mockApplication.Setup(p => p.Product).Returns(mockProduct.Object);
-
-            // Act
-            Func<int> act = new Func<int>(() => { return sut.SubmitApplicationFor(mockApplication.Object); });
-
-            // Assert
-            act.Should().Throw<InvalidOperationException>();
         }
 
         #endregion
 
-
-        #region Tests for individual operations
-
-        public void ProductApplicationService_SelectiveInvoice_WhenCalledWithSelectiveInvoiceDiscount_ShouldReturnOne()
-        {
-
-        }
-
-        public void ProductApplicationService_SelectiveInvoice_WhenCalledWithInvalidData_RaisesErrors()
-        {
-
-        }
-
-        public void ProductApplicationService_SelectiveInvoice_WhenOperationFails_RaisesErrors()
-        {
-
-        }
-
-        #endregion
-
-
-        #region Service Setups
-
-        private void SetupMockSelectInvoiceService(ISellerApplication application, int rtn)
-        {
-            SelectiveInvoiceDiscount product = (SelectiveInvoiceDiscount)application.Product;
-            _mockSelectInvoiceService
-                .Setup(p => p.SubmitApplicationFor(application.CompanyData.Number.ToString(), product.InvoiceAmount, product.AdvancePercentage))
-                .Returns(rtn);
-        }
-
-        private Mock<IApplicationResult> SetupMockActionResult(int? applicationId, bool success, IList<string> errors)
-        {
-            var mock = new Mock<IApplicationResult>(MockBehavior.Strict);
-            mock.SetupAllProperties();
-            mock.Object.ApplicationId = applicationId;
-            mock.Object.Success = success;
-            mock.Object.Errors = errors;
-
-            return mock;
-        }
-
-        private void SetupMockConfidentialInvoiceDiscount(ISellerApplication application, IApplicationResult result)
-        {
-            ConfidentialInvoiceDiscount product = (ConfidentialInvoiceDiscount)application.Product;
-
-            _mockConfidentialInvoiceService
-                .Setup(p => p.SubmitApplicationFor(It.IsAny<CompanyDataRequest>(), product.TotalLedgerNetworth, product.AdvancePercentage, product.VatRate))
-                .Returns(result);
-        }
-
-        private void SetupMockBusinessLoans(ISellerApplication application, IApplicationResult result)
-        {
-            _mockBusinessLoansService
-                .Setup(p => p.SubmitApplicationFor(It.IsAny<CompanyDataRequest>(), It.IsAny<LoansRequest>()))
-                .Returns(result);
-        }
         #endregion
     }
 }
