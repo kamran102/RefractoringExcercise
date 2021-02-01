@@ -19,45 +19,64 @@ namespace SlothEnterprise.ProductApplication
             _businessLoansService = businessLoansService;
         }
 
+        /// <inheritdoc />
+        [Obsolete("Use individual application methods to invoke services.")]
         public int SubmitApplicationFor(ISellerApplication application)
         {
-
             if (application.Product is SelectiveInvoiceDiscount sid)
             {
-                return _selectInvoiceService.SubmitApplicationFor(application.CompanyData.Number.ToString(), sid.InvoiceAmount, sid.AdvancePercentage);
+                return SubmitApplicationForSelectiveInvoiceDiscount(application.CompanyData, sid);
             }
 
             if (application.Product is ConfidentialInvoiceDiscount cid)
             {
-                var result = _confidentialInvoiceWebService.SubmitApplicationFor(
-                    new CompanyDataRequest
-                    {
-                        CompanyFounded = application.CompanyData.Founded,
-                        CompanyNumber = application.CompanyData.Number,
-                        CompanyName = application.CompanyData.Name,
-                        DirectorName = application.CompanyData.DirectorName
-                    }, cid.TotalLedgerNetworth, cid.AdvancePercentage, cid.VatRate);
-
-                return (result.Success) ? result.ApplicationId ?? -1 : -1;
+                return SubmitForConfidentialInvoiceDiscount(application.CompanyData, cid);
             }
 
             if (application.Product is BusinessLoans loans)
             {
-                var result = _businessLoansService.SubmitApplicationFor(new CompanyDataRequest
-                {
-                    CompanyFounded = application.CompanyData.Founded,
-                    CompanyNumber = application.CompanyData.Number,
-                    CompanyName = application.CompanyData.Name,
-                    DirectorName = application.CompanyData.DirectorName
-                }, new LoansRequest
-                {
-                    InterestRatePerAnnum = loans.InterestRatePerAnnum,
-                    LoanAmount = loans.LoanAmount
-                });
-                return (result.Success) ? result.ApplicationId ?? -1 : -1;
+                return SubmitApplicationForBusinessLoans(application.CompanyData, loans);
             }
 
             throw new InvalidOperationException();
+        }
+
+        /// <inheritdoc />
+        public int SubmitApplicationForSelectiveInvoiceDiscount(ISellerCompanyData companyData, SelectiveInvoiceDiscount sid)
+        {
+            return _selectInvoiceService.SubmitApplicationFor(companyData.Number.ToString(), sid.InvoiceAmount, sid.AdvancePercentage);
+        }
+
+        /// <inheritdoc />
+        public int SubmitApplicationForBusinessLoans(ISellerCompanyData companyData, BusinessLoans loans)
+        {
+            var result = _businessLoansService.SubmitApplicationFor(new CompanyDataRequest
+            {
+                CompanyFounded = companyData.Founded,
+                CompanyNumber = companyData.Number,
+                CompanyName = companyData.Name,
+                DirectorName = companyData.DirectorName
+            }, new LoansRequest
+            {
+                InterestRatePerAnnum = loans.InterestRatePerAnnum,
+                LoanAmount = loans.LoanAmount
+            });
+            return (result.Success) ? result.ApplicationId ?? -1 : -1;
+        }
+
+        /// <inheritdoc />
+        public int SubmitForConfidentialInvoiceDiscount(ISellerCompanyData companyData, ConfidentialInvoiceDiscount cid)
+        {
+            var result = _confidentialInvoiceWebService.SubmitApplicationFor(
+                                new CompanyDataRequest
+                                {
+                                    CompanyFounded = companyData.Founded,
+                                    CompanyNumber = companyData.Number,
+                                    CompanyName = companyData.Name,
+                                    DirectorName = companyData.DirectorName
+                                }, cid.TotalLedgerNetworth, cid.AdvancePercentage, cid.VatRate);
+
+            return (result.Success) ? result.ApplicationId ?? -1 : -1;
         }
     }
 }
