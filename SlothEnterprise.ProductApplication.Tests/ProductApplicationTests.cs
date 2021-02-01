@@ -32,6 +32,10 @@ namespace SlothEnterprise.ProductApplication.Tests
 
         #region Tests for group operations
 
+
+
+        #region Selective Invoice Discount
+
         [Fact]
         public void ProductApplicationService_SubmitApplicationFor_WhenCalledWithSelectiveInvoiceDiscount_ShouldReturnExpectedResult()
         {
@@ -50,6 +54,7 @@ namespace SlothEnterprise.ProductApplication.Tests
             _mockSelectInvoiceService.VerifyAll();
         }
 
+        #endregion
 
         #region Confidential Invoice Discount
 
@@ -70,6 +75,7 @@ namespace SlothEnterprise.ProductApplication.Tests
 
             // Assert
             actual.Should().Be(applicationId);
+            _mockConfidentialInvoiceService.Verify();
         }
 
         [Fact]
@@ -89,6 +95,7 @@ namespace SlothEnterprise.ProductApplication.Tests
 
             // Assert
             actual.Should().Be(-1);
+            _mockConfidentialInvoiceService.Verify();
         }
 
         [Fact]
@@ -108,6 +115,7 @@ namespace SlothEnterprise.ProductApplication.Tests
 
             // Assert
             actual.Should().Be(-1);
+            _mockConfidentialInvoiceService.Verify();
         }
 
         #endregion
@@ -132,6 +140,7 @@ namespace SlothEnterprise.ProductApplication.Tests
 
             // Assert
             actual.Should().Be(applicationId);
+            _mockBusinessLoansService.Verify();
         }
 
         [Fact]
@@ -151,6 +160,7 @@ namespace SlothEnterprise.ProductApplication.Tests
 
             // Assert
             actual.Should().Be(-1);
+            _mockBusinessLoansService.Verify();
         }
 
         [Fact]
@@ -170,6 +180,7 @@ namespace SlothEnterprise.ProductApplication.Tests
 
             // Assert
             actual.Should().Be(-1);
+            _mockBusinessLoansService.Verify();
         }
 
         #endregion
@@ -190,6 +201,7 @@ namespace SlothEnterprise.ProductApplication.Tests
 
             // Assert
             act.Should().Throw<InvalidOperationException>();
+            _mockBusinessLoansService.Verify();
         }
 
         #endregion
@@ -218,7 +230,8 @@ namespace SlothEnterprise.ProductApplication.Tests
             SelectiveInvoiceDiscount product = (SelectiveInvoiceDiscount)application.Product;
             _mockSelectInvoiceService
                 .Setup(p => p.SubmitApplicationFor(application.CompanyData.Number.ToString(), product.InvoiceAmount, product.AdvancePercentage))
-                .Returns(rtn);
+                .Returns(rtn)
+                .Verifiable();
         }
 
         private static ISellerApplication CreateSelectiveInvoiceDiscount()
@@ -252,7 +265,8 @@ namespace SlothEnterprise.ProductApplication.Tests
 
             _mockConfidentialInvoiceService
                 .Setup(p => p.SubmitApplicationFor(It.IsAny<CompanyDataRequest>(), product.TotalLedgerNetworth, product.AdvancePercentage, product.VatRate))
-                .Returns(result);
+                .Returns(result)
+                .Verifiable();
         }
 
         private static ISellerApplication CreateConfidentialInvoiceDiscount()
@@ -285,7 +299,8 @@ namespace SlothEnterprise.ProductApplication.Tests
         {
             _mockBusinessLoansService
                 .Setup(p => p.SubmitApplicationFor(It.IsAny<CompanyDataRequest>(), It.IsAny<LoansRequest>()))
-                .Returns(result);
+                .Returns(result)
+                .Verifiable();
         }
 
         private static ISellerApplication CreateBusinessLoansApplication()
