@@ -15,7 +15,6 @@ namespace SlothEnterprise.ProductApplication
         /// <remarks>This method has been marked as obselete in favour of individual method calls</remarks>
         /// <param name="application">Details of the application.</param>
         /// <returns>Result of the appication request.</returns>
-        [Obsolete("Use individual application methods to invoke services.")]
         int SubmitApplicationFor(ISellerApplication application);
 
         /// <summary>

@@ -20,7 +20,6 @@ namespace SlothEnterprise.ProductApplication
         }
 
         /// <inheritdoc />
-        [Obsolete("Use individual application methods to invoke services.")]
         public int SubmitApplicationFor(ISellerApplication application)
         {
             if (application.Product is SelectiveInvoiceDiscount sid)
