@@ -7,11 +7,18 @@ The return type is int for the applcation id, but -1 for failures.  It's not ver
 Each new entry type would require an addition to the function as it currently stands, and over time it would get quite messy without clear indiciation of which services are invoked without looking at the underlying code.
 
 Plan of action
-Overall: Refractor the code into individual service opeartions.
+Overall: Tests to verify current functionality. Refractor the code into individual service opertions.
 
 Actions:
 1. Additional tests to ensure all test scenarios of the current code are covered.
-2. Introduce interfaces for the various products as this would allow the items to be customised in the future.
-3. Introduce new methods on ProductApplicationService to cover existing scenarios.
-4. Extend the test coverage to ensure new functionality is fully testable.
-5. Refractor the existing function to utilise the new functionality but mark the method as obselete to ensure it's usage is phased out.
+2. Introduce new methods on ProductApplicationService to cover existing scenarios.
+3. Extend the test coverage to ensure new functionality is fully testable.
+4. Refractor the existing function to utilise the new functionality but mark the method as obselete to ensure it's usage is phased out.
+5. Introduce interfaces for the various products as this would allow the items to be customised in the future.
+
+What has Been Done:
+Actions 1-4 were completed.  4 is partially implemented, tests need to be seperated out.
+
+What is left to do:
+5 will need to be done in the future.
+Additionaly checks on how the current functionality is utilised so that the return type of (2) needs to be amended.
